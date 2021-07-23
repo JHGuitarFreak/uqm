@@ -530,7 +530,7 @@ STAR_DESC starmap_array[] =
 	{{1020, 9937}, MAKE_STAR (DWARF_STAR, RED_BODY, -1), 0, 7, 27},
 	{{  83, 9979}, MAKE_STAR (DWARF_STAR, RED_BODY, -1), 0, 6, 27},
 	{{1937, 9979}, MAKE_STAR (DWARF_STAR, RED_BODY, -1), 0, 1, 103},
-	{{4395, 9979}, MAKE_STAR (DWARF_STAR, GREEN_BODY, -1), 0, 0, 52},
+	{{4395, 9979}, MAKE_STAR (DWARF_STAR, GREEN_BODY, -1), STARBASE_DEFINED, 0, 52}, // I chose Microscopii for the new starbase
 
 	{{MAX_X_UNIVERSE << 1, MAX_Y_UNIVERSE << 1}, 0, 0, 0, 0},
 

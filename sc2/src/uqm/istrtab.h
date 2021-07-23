@@ -119,12 +119,14 @@
 #define SETUP_MENU_STRTAB "text.setupmenu"
 #define SHATTERED_COLOR_TAB "planet.shattered.colortable"
 #define SHATTERED_XLAT_TAB "planet.shattered.translatetable"
+#define SHATTERED_RUINS_STRTAB "text.shatteredruins" // Create a new macro to load the text for the Shattered World ruins
 #define SPAPLUTO_STRTAB "text.fwiffo"
 #define STARCON_COLOR_MAP "colortable.main"
 #define STARCON_GAME_STRINGS "text.starcon"
 #define SUN_DEVICE_STRTAB "text.sundevice"
 #define SUPER_DENSE_COLOR_TAB "planet.superdense.colortable"
 #define SUPER_DENSE_XLAT_TAB "planet.superdense.translatetable"
+#define STARBASE_RUINS_STRTAB "text.destroyedstarbase" // Create a new macro to load the text for the ruined starbase
 #define SUPOX_RUINS_STRTAB "text.ultron"
 #define TAALO_DEVICE_STRTAB "text.taalodevice"
 #define TELLURIC_COLOR_TAB "planet.telluric.colortable"

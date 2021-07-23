@@ -58,7 +58,8 @@ enum
 	RAINBOW_DEFINED,
 	ILWRATH_DEFINED,
 	ANDROSYNTH_DEFINED,
-	MYCON_TRAP_DEFINED
+	MYCON_TRAP_DEFINED,
+	STARBASE_DEFINED // Add definition that can be used to populate a star with your new starbase
 };
 
 #define UMGAH_DEFINED TALKING_PET_DEFINED

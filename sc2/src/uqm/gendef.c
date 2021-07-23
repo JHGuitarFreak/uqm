@@ -38,6 +38,7 @@ extern GenerateFunctions generateShofixtiFunctions;
 extern GenerateFunctions generateSlylandroFunctions;
 extern GenerateFunctions generateSolFunctions;
 extern GenerateFunctions generateSpathiFunctions;
+extern GenerateFunctions generateStarBaseFunctions; // Add reference to the struct in genbase.c
 extern GenerateFunctions generateSupoxFunctions;
 extern GenerateFunctions generateSyreenFunctions;
 extern GenerateFunctions generateTalkingPetFunctions;
@@ -130,6 +131,8 @@ getGenerateFunctions (BYTE Index)
 			return &generateRainbowWorldFunctions;
 		case ILWRATH_DEFINED:
 			return &generateIlwrathFunctions;
+		case STARBASE_DEFINED: // Add your new enum element STARBASE_DEFINED here
+			return &generateStarBaseFunctions; // While making sure to return the function from genbase.c
 		default:
 			return &generateDefaultFunctions;
 	}

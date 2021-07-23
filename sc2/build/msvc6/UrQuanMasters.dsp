@@ -2044,6 +2044,10 @@ SOURCE=..\..\src\uqm\planets\generate\genand.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\uqm\planets\generate\genbase.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\uqm\planets\generate\genburv.c
 # End Source File
 # Begin Source File
