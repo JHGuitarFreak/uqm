@@ -19,7 +19,12 @@
 #ifndef LIBS_NETWORK_WSPIAPIWRAP_H_
 #define LIBS_NETWORK_WSPIAPIWRAP_H_
 
-// HACK. See wspiapiwrap.c
+#if (_MSC_VER >= 1500)
+# include <wspiapi.h>
+#endif
+
+#if (_MSC_VER <= 1500 || defined(__MINGW32__))
+   // HACK. See wspiapiwrap.c
 #	define getaddrinfo WspiapiGetAddrInfo
 #	define getnameinfo WspiapiGetNameInfo
 #	define freeaddrinfo WspiapiFreeAddrInfo
@@ -28,6 +33,7 @@ int WINAPI WspiapiGetAddrInfo(const char *nodename, const char *servname,
 		const struct addrinfo *hints, struct addrinfo **res);
 int WINAPI WspiapiGetNameInfo (const struct sockaddr *sa, socklen_t salen,
 		char *host, size_t hostlen, char *serv, size_t servlen, int flags);
+#endif
 
 #endif  /* LIBS_NETWORK_WSPIAPIWRAP_H_ */
 
