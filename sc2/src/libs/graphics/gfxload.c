@@ -109,7 +109,7 @@ process_image (FRAME FramePtr, TFB_Canvas img[], AniData *ani, int cel_ct)
 }
 
 static void
-processFontChar (TFB_Char* CharPtr, TFB_Canvas canvas)
+processFontChar (TFB_Char* CharPtr, TFB_Canvas canvas, FONT fontPtr)
 {
 	BYTE* newdata;
 	size_t dpitch;
@@ -124,14 +124,9 @@ processFontChar (TFB_Char* CharPtr, TFB_Canvas canvas)
 
 	CharPtr->data = newdata;
 	CharPtr->pitch = dpitch;
-	CharPtr->disp.width = CharPtr->extent.width + 1;
-	CharPtr->disp.height = CharPtr->extent.height + 1;
-			// XXX: why the +1?
-			// I brought it into this function from the only calling
-			// function, but I don't know why it was there in the first
-			// place.
-			// XXX: the +1 appears to be for character and line spacing
-			//  text_blt just adds the frame width to move to the next char
+	CharPtr->disp.width = CharPtr->extent.width;
+	CharPtr->disp.height = CharPtr->extent.height;
+	CharPtr->HotSpot.x = 0;
 	
 	{
 		// This tunes the font positioning to be about what it should
@@ -139,15 +134,17 @@ processFontChar (TFB_Char* CharPtr, TFB_Canvas canvas)
 
 		int tune_amount = 0;
 
-		if (CharPtr->extent.height == 8)
-			tune_amount = -1;
-		else if (CharPtr->extent.height == 9)
-			tune_amount = -2;
-		else if (CharPtr->extent.height > 9)
-			tune_amount = -3;
+		if (CharPtr->disp.height <= 8)
+			tune_amount = 1;
+		else if (CharPtr->disp.height == 9)
+			tune_amount = 2;
+		else
+			tune_amount = 3;
 
-		CharPtr->HotSpot = MAKE_HOT_SPOT (0,
-				CharPtr->extent.height + tune_amount);
+		if (fontPtr->HaveFntData)
+			tune_amount = fontPtr->VertAlign;
+
+		CharPtr->HotSpot.y = CharPtr->disp.height - tune_amount;
 	}
 }
 
@@ -368,6 +365,8 @@ _GetFontData (uio_Stream *fp, DWORD length)
 	uio_DirHandle *fontDirHandle = NULL;
 	uio_MountHandle *fontMount = NULL;
 	FONT fontPtr = NULL;
+	uio_Stream *cfgFile = 0;
+	const char *cfg_name = "kerndat.fnt";
 
 	if (_cur_resfile_name == 0)
 		goto err;
@@ -429,10 +428,14 @@ _GetFontData (uio_Stream *fp, DWORD length)
 
 		char_name = GetDirEntryAddress (SetAbsDirEntryTableIndex (
 				fontDir, dirEntryI));
+
+		if (strcmp (char_name, cfg_name) == 0)
+			continue;
+
 		if (sscanf (char_name, "%x.", &charIndex) != 1)
 			continue;
 			
-		if (charIndex > 0xffff)
+		if (charIndex > MAX_UNICODE)
 			continue;
 
 		canvas = TFB_DrawCanvas_LoadFromFile (fontDirHandle, char_name);
@@ -450,6 +453,73 @@ _GetFontData (uio_Stream *fp, DWORD length)
 		bcds[numBCDs].index = charIndex;
 		numBCDs++;
 	}
+
+	fontPtr = AllocFont (0);
+	if (fontPtr == NULL)
+		goto err;
+
+	cfgFile = uio_fopen (fontDirHandle, cfg_name, "r");
+
+	if (cfgFile)
+	{
+		char *CurrentLine[PATH_MAX];
+		int cel_index = 0;
+		int cel_total = 0;
+		DWORD opos = 0;
+
+		uio_fseek (cfgFile, opos, SEEK_SET);
+		while (uio_fgets (CurrentLine, sizeof (CurrentLine), cfgFile))
+		{
+			++cel_total;
+			if (cel_total == MAX_UNICODE)
+				break;
+		}
+
+		uio_fseek (cfgFile, opos, SEEK_SET);
+		while (uio_fgets (
+				CurrentLine, sizeof (CurrentLine),
+				cfgFile) && cel_index < cel_total)
+		{
+			if (cel_index > 0)
+			{
+				SDWORD KernChar, kernLBits, kernRBits;
+
+				if (sscanf (CurrentLine, "%x %u %u", &KernChar,
+						&kernLBits, &kernRBits) == 3)
+				{
+					if (kernLBits > 3 || kernLBits < 0)
+						kernLBits = 3;
+					if (kernRBits > 3 || kernRBits < 0)
+						kernRBits = 3;
+
+					fontPtr->KernTab[KernChar] =
+							(kernLBits << 2) | kernRBits;
+				}
+			}
+			else
+			{
+				if (sscanf (CurrentLine, "%s %hhu %hhu %hhu %hhd",
+						fontPtr->filename, &fontPtr->Leading,
+						&fontPtr->CharSpace, &fontPtr->KernAmount,
+						&fontPtr->VertAlign) == 5)
+				{
+					fontPtr->HaveFntData = TRUE;
+				}
+				else
+					break;
+			}
+
+			++cel_index;
+			if (cel_index == MAX_UNICODE)
+				break;
+
+			if ((int)uio_ftell (cfgFile) - (int)opos
+					>= (int)LengthResFile (cfgFile))
+				break;
+		}
+		uio_fclose (cfgFile);
+	}
+
 	uio_closeDir (fontDirHandle);
 	DestroyDirEntryTable (ReleaseDirEntryTable (fontDir));
 	if (fontMount != 0)
@@ -462,13 +532,6 @@ _GetFontData (uio_Stream *fp, DWORD length)
 
 	// sort on the character index
 	qsort (bcds, numBCDs, sizeof (BuildCharDesc), compareBCDIndex);
-
-	fontPtr = AllocFont (0);
-	if (fontPtr == NULL)
-		goto err;
-	
-	fontPtr->Leading = 0;
-	fontPtr->LeadingWidth = 0;
 
 	{
 		size_t startBCD = 0;
@@ -513,13 +576,13 @@ _GetFontData (uio_Stream *fp, DWORD length)
 						continue;
 					}
 					
-					processFontChar (destChar, bcd->canvas);
+					processFontChar (destChar, bcd->canvas, fontPtr);
 					TFB_DrawCanvas_Delete (bcd->canvas);
 
-					if (destChar->disp.height > fontPtr->Leading)
-						fontPtr->Leading = destChar->disp.height;
-					if (destChar->disp.width > fontPtr->LeadingWidth)
-						fontPtr->LeadingWidth = destChar->disp.width;
+					if (destChar->disp.height > fontPtr->disp.height)
+						fontPtr->disp.height = destChar->disp.height;
+					if (destChar->disp.width > fontPtr->disp.width)
+						fontPtr->disp.width = destChar->disp.width;
 				}
 			}
 
@@ -528,7 +591,11 @@ _GetFontData (uio_Stream *fp, DWORD length)
 		*pageEndPtr = NULL;
 	}
 
-	fontPtr->Leading++;
+	if (!fontPtr->HaveFntData)
+	{
+		fontPtr->Leading = fontPtr->disp.height + 1;
+		fontPtr->CharSpace = 1;
+	}
 
 	HFree (bcds);
 

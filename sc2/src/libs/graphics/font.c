@@ -105,11 +105,24 @@ GetContextFontLeading (SIZE *pheight)
 }
 
 BOOLEAN
-GetContextFontLeadingWidth (SIZE *pwidth)
+GetContextFontDispHeight (SIZE *pheight)
 {
 	if (_CurFontPtr != 0)
 	{
-		*pwidth = (SIZE)_CurFontPtr->LeadingWidth;
+		*pheight = (SIZE)_CurFontPtr->disp.height;
+		return (TRUE);
+	}
+
+	*pheight = 0;
+	return (FALSE);
+}
+
+BOOLEAN
+GetContextFontDispWidth (SIZE *pwidth)
+{
+	if (_CurFontPtr != 0)
+	{
+		*pwidth = (SIZE)_CurFontPtr->disp.width;
 		return (TRUE);
 	}
 
@@ -188,13 +201,12 @@ TextRect (TEXT *lpText, RECT *pRect, BYTE *pdelta)
 				if (y > bot_y)
 					bot_y = y;
 
-				width += charFrame->disp.width;
-#if 0
-				if (num_chars && next_ch < (UNICODE) MAX_CHARS
+				width += charFrame->disp.width + FontPtr->CharSpace;
+
+				if (num_chars && FontPtr->KernTab[ch] != NULL
 						&& !(FontPtr->KernTab[ch]
 						& (FontPtr->KernTab[next_ch] >> 2)))
 					width -= FontPtr->KernAmount;
-#endif
 			}
 
 			*pdelta++ = (BYTE)(width - last_width);
@@ -206,7 +218,7 @@ TextRect (TEXT *lpText, RECT *pRect, BYTE *pdelta)
 			if (pdelta[-1] > 0)
 			{
 				--pdelta[-1];
-				--width;
+				width -= FontPtr->CharSpace;
 			}
 
 			if (lpText->align == ALIGN_LEFT)
@@ -290,13 +302,12 @@ _text_blt (RECT *pClipRect, TEXT *TextPtr, POINT ctxOrigin)
 						ctxOrigin);
 			}
 
-			origin.x += fontChar->disp.width;
-#if 0
-			if (num_chars && next_ch < (UNICODE) MAX_CHARS
+			origin.x += fontChar->disp.width + FontPtr->CharSpace;
+
+			if (num_chars && FontPtr->KernTab[ch] != NULL
 					&& !(FontPtr->KernTab[ch]
 					& (FontPtr->KernTab[next_ch] >> 2)))
 				origin.x -= FontPtr->KernAmount;
-#endif
 		}
 	}
 }
