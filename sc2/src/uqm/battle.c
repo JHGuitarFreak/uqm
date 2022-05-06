@@ -105,6 +105,16 @@ DoRunAway (STARSHIP *StarShipPtr)
 }
 
 static void
+HaltShip (STARSHIP *StarShipPtr)
+{
+	ELEMENT *ElementPtr;
+
+	LockElement (StarShipPtr->hShip, &ElementPtr);
+	ZeroVelocityComponents (&ElementPtr->velocity);
+	UnlockElement (StarShipPtr->hShip);
+}
+
+static void
 setupBattleInputOrder(void)
 {
 	size_t i;
@@ -206,6 +216,9 @@ ProcessInput (void)
 						StarShipPtr->ship_input_state |= WEAPON;
 					if (InputState & BATTLE_SPECIAL)
 						StarShipPtr->ship_input_state |= SPECIAL;
+
+					if (InputState & BATTLE_DOWN)
+						HaltShip (StarShipPtr);
 
 					if (CanRunAway && cur_player == 0 &&
 							(InputState & BATTLE_ESCAPE))
