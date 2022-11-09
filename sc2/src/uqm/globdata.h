@@ -170,7 +170,7 @@ enum
 	NUM_DEVICES
 };
 
-#define YEARS_TO_KOHRAH_VICTORY 4
+#define YEARS_TO_KOHRAH_VICTORY 100
 
 #define START_GAME_STATE enum {
 #define ADD_GAME_STATE(SName,NumBits) SName, END_##SName = SName + NumBits - 1,
