@@ -130,5 +130,16 @@ Victory (void)
 	FadeScreen (FadeAllToBlack, 0);
 }
 
+void
+Logo (void)
+{
+	ShowPresentation (LOGOPRES_STRTAB);
+	SleepThreadUntil (FadeScreen (FadeAllToBlack, ONE_SECOND / 2));
+}
 
-
+void
+Drumall (void)
+{
+	ShowPresentation (DRUMALLPRES_STRTAB);
+	SleepThreadUntil (FadeScreen (FadeAllToBlack, ONE_SECOND / 2));
+}

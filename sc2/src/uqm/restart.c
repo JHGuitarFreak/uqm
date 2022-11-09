@@ -381,6 +381,8 @@ StartGame (void)
 			{	// timed out
 				GLOBAL (CurrentActivity) = 0;
 				SplashScreen (0);
+				if (optWhichIntro == OPT_3DO)
+					Drumall ();
 				Credits (FALSE);
 			}
 
