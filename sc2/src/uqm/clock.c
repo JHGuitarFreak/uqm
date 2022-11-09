@@ -174,7 +174,8 @@ SetGameClockRate (COUNT seconds_per_day)
 {
 	SIZE new_day_in_ticks, new_tick_count;
 
-	new_day_in_ticks = (SIZE)(seconds_per_day * CLOCK_BASE_FRAMERATE);
+	new_day_in_ticks = (SIZE)(seconds_per_day * CLOCK_BASE_FRAMERATE) * 6;
+
 	if (GLOBAL (GameClock.day_in_ticks) == 0)
 		new_tick_count = new_day_in_ticks;
 	else if (GLOBAL (GameClock.tick_count) <= 0)
